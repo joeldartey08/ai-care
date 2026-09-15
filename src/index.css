@@ -1,0 +1,19 @@
+:root {
+  --primary: #101010;
+  --secondary: #3368a0;
+  --abstract: #66a3bf;
+  --white: #f2efe7;
+}
+
+.btn {
+  padding: 10px 15px;
+  text-align: center;
+  background-color: var(--secondary);
+  border-radius: 20px;
+  color: var(--white);
+  cursor: pointer;
+}
+
+li {
+  list-style: none;
+}
