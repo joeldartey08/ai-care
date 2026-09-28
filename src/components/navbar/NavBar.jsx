@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import "./style.css";
 import { Link } from "react-router-dom";
 
 function NavBar({ title, nav }) {
+  
   return (
     <div className="navbar">
       <h1 className="logo">{title}</h1>
