@@ -9,22 +9,29 @@ function Testing() {
     const interval = setInterval(() => {
       setCount((prev) => {
         if (prev <= 0) {
+          clearInterval(interval);
           return 0;
         }
-
-        return prev - 1;
+        return --prev;
       });
-    }, 2000);
+    }, 1000);
 
     return () => {
       clearInterval(interval);
     };
   }, [count]);
+
+  const handleChange = (e) => {
+    setName(e.target.value);
+
+    console.log(name);
+  };
+
   return (
     <div className="card-container">
       <input
         className="card-input"
-        onChange={(e) => setName(e.target.value)}
+        onChange={(e) => handleChange(e)}
         placeholder="e.g. pascal"
         value={name}
       />

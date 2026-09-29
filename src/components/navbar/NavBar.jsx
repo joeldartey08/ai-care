@@ -3,7 +3,6 @@ import "./style.css";
 import { Link } from "react-router-dom";
 
 function NavBar({ title, nav }) {
-  
   return (
     <div className="navbar">
       <h1 className="logo">{title}</h1>
@@ -17,6 +16,10 @@ function NavBar({ title, nav }) {
       </ul>
       <Link className="btn" to="/login">
         Book A Demo
+      </Link>
+
+      <Link className="btn" to="/register">
+        Get Started
       </Link>
     </div>
   );
