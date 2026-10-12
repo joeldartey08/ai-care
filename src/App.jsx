@@ -6,8 +6,8 @@ import Register from "./pages/Register";
 function App() {
   return (
     <Routes>
-      <Route path="/" index element={<Landing />} />
-      <Route path="/login" element={<Login />} />
+      {/* <Route path="/" index element={<Landing />} /> */}
+      <Route path="/" element={<Login />} />
       <Route path="/register" element={<Register />} />
     </Routes>
   );

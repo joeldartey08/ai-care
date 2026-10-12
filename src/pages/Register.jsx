@@ -1,24 +1,67 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-function Register() {
+const diseases = [
+  "Diabetes",
+  "Hypertension",
+  "Asthma",
+  "Allergies",
+  "HIV/AIDS",
+];
+
+const Register = () => {
   const [registerDetails, setRegisterDetails] = useState({
     username: "",
     email: "",
     password: "",
-    sex: "",
+    gender: "",
     bloodGroup: "",
     diseases: [],
   });
+  const [isLoading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setRegisterDetails({ ...registerDetails, [name]: value });
+  };
 
-    console.log(registerDetails);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      if (!registerDetails.email || !registerDetails.password) {
+        alert("all fields are required");
+        return;
+      }
+      const response = await fetch(
+        "https://untendered-atlantal-florance.ngrok-free.dev/api/v1/auth/signup",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(registerDetails),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message ?? "Login Failed");
+        throw data;
+      }
+
+      navigate("/");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <form className="login-page">
+    <form onSubmit={handleSubmit} className="login-page">
       <h2 className="login-title">Create an Account</h2>
       <p className="login-subtitle">Sign up to get started</p>
 
@@ -47,6 +90,8 @@ function Register() {
           className="form-input"
           name="email"
           type="email"
+          value={registerDetails.email}
+          onChange={(e) => handleChange(e)}
           placeholder="Email"
         />
       </div>
@@ -62,6 +107,8 @@ function Register() {
           name="password"
           type="password"
           placeholder="Password"
+          value={registerDetails.password}
+          onChange={(e) => handleChange(e)}
         />
       </div>
 
@@ -72,20 +119,20 @@ function Register() {
           <label style={{ display: "flex", alignItems: "center", gap: "5px" }}>
             <input
               type="radio"
-              name="sex"
-              // value="Male"
-              // checked={registerDetails.sex === "Male"}
-              // onChange={handleChange}
+              name="gender"
+              value="Male"
+              checked={registerDetails.gender === "Male"}
+              onChange={(e) => handleChange(e)}
             />
             Male
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: "5px" }}>
             <input
               type="radio"
-              // name="sex"
-              // value="Female"
-              // checked={registerDetails.sex === "Female"}
-              // onChange={handleChange}
+              name="gender"
+              value="Female"
+              checked={registerDetails.gender === "Female"}
+              onChange={(e) => handleChange(e)}
             />
             Female
           </label>
@@ -101,8 +148,8 @@ function Register() {
           id="bloodGroup"
           className="form-input"
           name="bloodGroup"
-          // value={registerDetails.bloodGroup}
-          // onChange={handleChange}
+          value={registerDetails.bloodGroup}
+          onChange={(e) => handleChange(e)}
           style={{ width: "100%", height: "40px", background: "transparent" }}
         >
           <option value="">Select Blood Group</option>
@@ -130,49 +177,48 @@ function Register() {
             marginTop: "5px",
           }}
         >
-          {["Diabetes", "Hypertension", "Asthma", "Allergies"].map(
-            (disease) => (
-              <label
-                key={disease}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  cursor: "pointer",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  name="diseases"
-                  value={disease}
-                  checked={registerDetails.diseases.includes(disease)}
-                  // onChange={(e) => {
-                  //   const { value, checked } = e.target;
-                  //   setRegisterDetails((prev) => {
-                  //     // If checked, add to array; if unchecked, remove from array
-                  //     const updatedDiseases = checked
-                  //       ? [...prev.diseases, value]
-                  //       : prev.diseases.filter((item) => item !== value);
+          {diseases.map((item, index) => (
+            <label
+              key={index}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="checkbox"
+                name="diseases"
+                value={item}
+                onChange={(e) => {
+                  const { value, checked } = e.target;
 
-                  //     return { ...prev, diseases: updatedDiseases };
-                  //   });
-                  // }}
-                />
-                <span style={{ fontSize: "14px" }}>{disease}</span>
-              </label>
-            ),
-          )}
+                  setRegisterDetails((prev) => {
+                    const updated = checked
+                      ? [...prev.diseases, value]
+                      : prev.diseases.filter((it) => it !== value);
+
+                    return { ...prev, diseases: updated };
+                  });
+                }}
+                checked={registerDetails.diseases.includes(item)}
+              />
+              <span style={{ fontSize: "14px" }}>{item}</span>
+            </label>
+          ))}
         </div>
       </div>
 
       <button
         className="btn login-btn"
         style={{ width: "100%", marginTop: "10px" }}
+        disabled={isLoading}
       >
-        Register
+        {isLoading ? "Loading" : "Register"}
       </button>
     </form>
   );
-}
+};
 
 export default Register;

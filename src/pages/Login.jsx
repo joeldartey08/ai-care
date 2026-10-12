@@ -6,38 +6,44 @@ function Login() {
     email: "",
     password: "",
   });
-  const navigate = useNavigation();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setLoginDetails((prev) => ({ ...prev, [name]: value }));
-    console.log(loginDetails);
   };
 
   async function handSubmit(e) {
     e.preventDefault();
     console.log(loginDetails);
-    if (!loginDetails.email || !loginDetails.password) {
-      alert("All fields are required");
-      return;
+    try {
+      if (!loginDetails.email || !loginDetails) {
+        alert("all fields required");
+        return;
+      }
+      const response = await fetch(
+        "https://untendered-atlantal-florance.ngrok-free.dev/api/v1/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(loginDetails),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message ?? "login failed");
+        throw new Error(data.message ?? "NetWork Error");
+      }
+
+      console.log(data);
+
+      
+    } catch (error) {
+      console.error("login error", error);
     }
-
-    const response = await fetch("https://example.com/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(loginDetails),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      alert("login failed");
-      return;
-    }
-
-
   }
 
   return (
