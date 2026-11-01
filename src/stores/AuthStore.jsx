@@ -12,9 +12,7 @@ function AuthStore({children}) {
   return (
 <AuthContent.Provider value={{user, setUser, isAuthenticated, setAuthenticated}}>
     {children}
-</AuthContent.Provider>
-    
-   
+</AuthContent.Provider> 
   )
 }
 

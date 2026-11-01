@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const diseases = [
   "Diabetes",
@@ -35,7 +35,7 @@ const Register = () => {
         return;
       }
       const response = await fetch(
-        "https://untendered-atlantal-florance.ngrok-free.dev/api/v1/auth/signup",
+        "https://ai-care-backend-45fz.onrender.com/api/v1/auth/signup",
         {
           method: "POST",
           headers: {
@@ -217,6 +217,9 @@ const Register = () => {
       >
         {isLoading ? "Loading" : "Register"}
       </button>
+      <p>
+        Already have an account? <Link to="/">Login</Link>
+      </p>
     </form>
   );
 };

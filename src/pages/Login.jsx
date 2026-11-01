@@ -1,11 +1,15 @@
-import { useState } from "react";
-import { useNavigation } from "react-router-dom";
+import { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContent } from "../stores/AuthStore";
 
 function Login() {
+  const navigate = useNavigate();
+  const authStore = useContext(AuthContent);
   const [loginDetails, setLoginDetails] = useState({
     email: "",
     password: "",
   });
+  const [isLoading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -15,13 +19,14 @@ function Login() {
   async function handSubmit(e) {
     e.preventDefault();
     console.log(loginDetails);
+    setLoading(true);
     try {
-      if (!loginDetails.email || !loginDetails) {
+      if (!loginDetails.email || !loginDetails.password) {
         alert("all fields required");
         return;
       }
       const response = await fetch(
-        "https://untendered-atlantal-florance.ngrok-free.dev/api/v1/auth/login",
+        "https://ai-care-backend-45fz.onrender.com/api/v1/auth/login",
         {
           method: "POST",
           headers: {
@@ -40,9 +45,19 @@ function Login() {
 
       console.log(data);
 
-      
+      const token = data.token ?? data.accessToken ?? data.data?.token;
+
+      if (!token) {
+        throw new Error("Login response did not include an authentication token");
+      }
+
+      localStorage.setItem("auth_token", token);
+      authStore?.setAuthenticated(true);
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       console.error("login error", error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -80,9 +95,16 @@ function Login() {
         />
       </div>
 
-      <button className="btn login-btn" style={{ width: "100%" }}>
-        Login
+      <button
+        className="btn login-btn"
+        style={{ width: "100%" }}
+        disabled={isLoading}
+      >
+        {isLoading ? "Loading" : "Login"}
       </button>
+      <p>
+        Don&apos;t have an account? <Link to="/register">Register</Link>
+      </p>
     </form>
   );
 }
