@@ -1,6 +1,8 @@
 import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { AuthContent } from "../stores/AuthStore";
+import AuthLayout from "../components/AuthLayout";
 
 function Login() {
   const navigate = useNavigate();
@@ -16,15 +18,15 @@ function Login() {
     setLoginDetails((prev) => ({ ...prev, [name]: value }));
   };
 
-  async function handSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    console.log(loginDetails);
+    if (!loginDetails.email.trim() || !loginDetails.password) {
+      toast.error("Enter your email and password to continue.");
+      return;
+    }
+
     setLoading(true);
     try {
-      if (!loginDetails.email || !loginDetails.password) {
-        alert("all fields required");
-        return;
-      }
       const response = await fetch(
         "https://ai-care-backend-45fz.onrender.com/api/v1/auth/login",
         {
@@ -39,11 +41,8 @@ function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.message ?? "login failed");
-        throw new Error(data.message ?? "NetWork Error");
+        throw new Error(data.message ?? "Unable to log in. Please try again.");
       }
-
-      console.log(data);
 
       const token = data.token ?? data.accessToken ?? data.data?.token;
 
@@ -53,59 +52,69 @@ function Login() {
 
       localStorage.setItem("auth_token", token);
       authStore?.setAuthenticated(true);
+      toast.success("Welcome back.");
       navigate("/dashboard", { replace: true });
     } catch (error) {
       console.error("login error", error);
+      toast.error(
+        error.message ?? "Something went wrong while signing you in.",
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handSubmit} className="login-page">
-      <h2 className="login-title">Welcome back</h2>
-      <p className="login-subtitle">Sign in to continue</p>
+    <AuthLayout
+      mode="login"
+      eyebrow="WELCOME BACK"
+      title="Sign in to your account"
+      description="Continue your care conversations whenever you need them."
+    >
+      <form onSubmit={handleSubmit} className="auth-form">
+        <div className="form-group">
+          <label htmlFor="email" className="form-label">
+            Email address
+          </label>
+          <input
+            id="email"
+            className="form-input"
+            onChange={handleChange}
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={loginDetails.email}
+            required
+          />
+        </div>
 
-      <div className="form-group">
-        <label htmlFor="email" className="form-label">
-          Email
-        </label>
-        <input
-          id="email"
-          className="form-input"
-          onChange={(e) => handleChange(e)}
-          name="email"
-          placeholder="Email"
-          value={loginDetails.email}
-        />
-      </div>
+        <div className="form-group">
+          <label htmlFor="password" className="form-label">
+            Password
+          </label>
+          <input
+            id="password"
+            className="form-input"
+            onChange={handleChange}
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="Enter your password"
+            value={loginDetails.password}
+            required
+          />
+        </div>
 
-      <div className="form-group">
-        <label htmlFor="password" className="form-label">
-          Password
-        </label>
-        <input
-          id="password"
-          className="form-input"
-          onChange={(e) => handleChange(e)}
-          name="password"
-          type="password"
-          placeholder="Password"
-          value={loginDetails.password}
-        />
-      </div>
-
-      <button
-        className="btn login-btn"
-        style={{ width: "100%" }}
-        disabled={isLoading}
-      >
-        {isLoading ? "Loading" : "Login"}
-      </button>
-      <p>
-        Don&apos;t have an account? <Link to="/register">Register</Link>
-      </p>
-    </form>
+        <button className="auth-submit-button" disabled={isLoading}>
+          {isLoading ? "Signing you in..." : "Sign in"}
+          {!isLoading && <span aria-hidden="true">↗</span>}
+        </button>
+        <p className="auth-switch">
+          New to AI Care? <Link to="/register">Create an account</Link>
+        </p>
+      </form>
+    </AuthLayout>
   );
 }
 

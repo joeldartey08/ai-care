@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import AuthLayout from "../components/AuthLayout";
 
 const diseases = [
   "Diabetes",
@@ -23,17 +25,21 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setRegisterDetails({ ...registerDetails, [name]: value });
+    setRegisterDetails((currentDetails) => ({
+      ...currentDetails,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!registerDetails.email.trim() || !registerDetails.password) {
+      toast.error("Enter your email and password to create an account.");
+      return;
+    }
+
     setLoading(true);
     try {
-      if (!registerDetails.email || !registerDetails.password) {
-        alert("all fields are required");
-        return;
-      }
       const response = await fetch(
         "https://ai-care-backend-45fz.onrender.com/api/v1/auth/signup",
         {
@@ -48,179 +54,160 @@ const Register = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.message ?? "Login Failed");
-        throw data;
+        throw new Error(data.message ?? "Unable to create your account.");
       }
 
-      navigate("/");
+      toast.success("Account created. Sign in to continue.");
+      navigate("/login");
     } catch (error) {
       console.error(error);
+      toast.error(
+        error.message ?? "Something went wrong while creating your account.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="login-page">
-      <h2 className="login-title">Create an Account</h2>
-      <p className="login-subtitle">Sign up to get started</p>
-
-      {/* Username Field */}
-      <div className="form-group">
-        <label htmlFor="username" className="form-label">
-          Username
-        </label>
-        <input
-          id="username"
-          className="form-input"
-          name="username"
-          placeholder="Username"
-          onChange={(e) => handleChange(e)}
-          value={registerDetails.username}
-        />
-      </div>
-
-      {/* Email Field */}
-      <div className="form-group">
-        <label htmlFor="email" className="form-label">
-          Email
-        </label>
-        <input
-          id="email"
-          className="form-input"
-          name="email"
-          type="email"
-          value={registerDetails.email}
-          onChange={(e) => handleChange(e)}
-          placeholder="Email"
-        />
-      </div>
-
-      {/* Password Field */}
-      <div className="form-group">
-        <label htmlFor="password" className="form-label">
-          Password
-        </label>
-        <input
-          id="password"
-          className="form-input"
-          name="password"
-          type="password"
-          placeholder="Password"
-          value={registerDetails.password}
-          onChange={(e) => handleChange(e)}
-        />
-      </div>
-
-      {/* Sex (Radio Buttons) */}
-      <div className="form-group">
-        <label className="form-label">Sex</label>
-        <div style={{ display: "flex", gap: "15px", marginTop: "5px" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-            <input
-              type="radio"
-              name="gender"
-              value="Male"
-              checked={registerDetails.gender === "Male"}
-              onChange={(e) => handleChange(e)}
-            />
-            Male
-          </label>
-          <label style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-            <input
-              type="radio"
-              name="gender"
-              value="Female"
-              checked={registerDetails.gender === "Female"}
-              onChange={(e) => handleChange(e)}
-            />
-            Female
-          </label>
-        </div>
-      </div>
-
-      {/* Blood Group (Dropdown Select) */}
-      <div className="form-group">
-        <label htmlFor="bloodGroup" className="form-label">
-          Blood Group
-        </label>
-        <select
-          id="bloodGroup"
-          className="form-input"
-          name="bloodGroup"
-          value={registerDetails.bloodGroup}
-          onChange={(e) => handleChange(e)}
-          style={{ width: "100%", height: "40px", background: "transparent" }}
-        >
-          <option value="">Select Blood Group</option>
-          <option value="A+">A+</option>
-          <option value="A-">A-</option>
-          <option value="B+">B+</option>
-          <option value="B-">B-</option>
-          <option value="AB+">AB+</option>
-          <option value="AB-">AB-</option>
-          <option value="O+">O+</option>
-          <option value="O-">O-</option>
-        </select>
-      </div>
-
-      {/* Medical History / Diseases (Checkboxes) */}
-      <div className="form-group">
-        <label className="form-label">
-          Medical History (Select all that apply)
-        </label>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "8px",
-            marginTop: "5px",
-          }}
-        >
-          {diseases.map((item, index) => (
-            <label
-              key={index}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                cursor: "pointer",
-              }}
-            >
-              <input
-                type="checkbox"
-                name="diseases"
-                value={item}
-                onChange={(e) => {
-                  const { value, checked } = e.target;
-
-                  setRegisterDetails((prev) => {
-                    const updated = checked
-                      ? [...prev.diseases, value]
-                      : prev.diseases.filter((it) => it !== value);
-
-                    return { ...prev, diseases: updated };
-                  });
-                }}
-                checked={registerDetails.diseases.includes(item)}
-              />
-              <span style={{ fontSize: "14px" }}>{item}</span>
+    <AuthLayout
+      mode="register"
+      eyebrow="YOUR CARE JOURNEY"
+      title="Create your account"
+      description="Get started with a space to explore your health questions."
+    >
+      <form onSubmit={handleSubmit} className="auth-form auth-register-form">
+        <div className="auth-form-grid">
+          <div className="form-group">
+            <label htmlFor="username" className="form-label">
+              Username
             </label>
-          ))}
-        </div>
-      </div>
+            <input
+              id="username"
+              className="form-input"
+              name="username"
+              autoComplete="username"
+              placeholder="Choose a username"
+              onChange={handleChange}
+              value={registerDetails.username}
+            />
+          </div>
 
-      <button
-        className="btn login-btn"
-        style={{ width: "100%", marginTop: "10px" }}
-        disabled={isLoading}
-      >
-        {isLoading ? "Loading" : "Register"}
-      </button>
-      <p>
-        Already have an account? <Link to="/">Login</Link>
-      </p>
-    </form>
+          <div className="form-group">
+            <label htmlFor="email" className="form-label">
+              Email address
+            </label>
+            <input
+              id="email"
+              className="form-input"
+              name="email"
+              type="email"
+              autoComplete="email"
+              value={registerDetails.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              required
+            />
+          </div>
+
+          <div className="form-group auth-field-wide">
+            <label htmlFor="password" className="form-label">
+              Password
+            </label>
+            <input
+              id="password"
+              className="form-input"
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              placeholder="Create a password"
+              value={registerDetails.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <fieldset className="auth-choice-fieldset">
+            <legend>Sex</legend>
+            <div className="auth-choice-row">
+              {["Male", "Female"].map((gender) => (
+                <label className="auth-choice-option" key={gender}>
+                  <input
+                    type="radio"
+                    name="gender"
+                    value={gender}
+                    checked={registerDetails.gender === gender}
+                    onChange={handleChange}
+                  />
+                  <span>{gender}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <div className="form-group">
+            <label htmlFor="bloodGroup" className="form-label">
+              Blood group
+            </label>
+            <select
+              id="bloodGroup"
+              className="form-input auth-select"
+              name="bloodGroup"
+              value={registerDetails.bloodGroup}
+              onChange={handleChange}
+            >
+              <option value="">Select blood group</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+
+          <fieldset className="auth-choice-fieldset auth-medical-fieldset auth-field-wide">
+            <legend>
+              Medical history <span>Select any that apply</span>
+            </legend>
+            <div className="auth-disease-grid">
+              {diseases.map((disease) => (
+                <label className="auth-choice-option" key={disease}>
+                  <input
+                    type="checkbox"
+                    name="diseases"
+                    value={disease}
+                    onChange={(event) => {
+                      const { value, checked } = event.target;
+                      setRegisterDetails((currentDetails) => ({
+                        ...currentDetails,
+                        diseases: checked
+                          ? [...currentDetails.diseases, value]
+                          : currentDetails.diseases.filter(
+                              (item) => item !== value,
+                            ),
+                      }));
+                    }}
+                    checked={registerDetails.diseases.includes(disease)}
+                  />
+                  <span>{disease}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+
+        <button className="auth-submit-button" disabled={isLoading}>
+          {isLoading ? "Creating your account..." : "Create account"}
+          {!isLoading && <span aria-hidden="true">↗</span>}
+        </button>
+        <p className="auth-switch">
+          Already have an account? <Link to="/login">Sign in</Link>
+        </p>
+      </form>
+    </AuthLayout>
   );
 };
 

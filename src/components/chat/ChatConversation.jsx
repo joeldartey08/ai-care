@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 
 function ChatConversation({
   sessionId,
@@ -8,7 +9,6 @@ function ChatConversation({
   onSessionUpdated,
   isSendingMessage,
   setIsSendingMessage,
-  onOpenSidebar,
 }) {
   const [chatData, setChatData] = useState({ sessionId: "", chats: [] });
   const [location, setLocation] = useState({
@@ -17,6 +17,7 @@ function ChatConversation({
     country: "",
   });
   const [message, setMessage] = useState("");
+  const [isLocationFieldsVisible, setIsLocationFieldsVisible] = useState(false);
   const [errors, setErrors] = useState({
     message: "",
     messages: { sessionId: "", message: "" },
@@ -90,6 +91,11 @@ function ChatConversation({
     }
 
     fetchMessages();
+    return () => {
+      if (requestId.current === currentRequestId) {
+        requestId.current += 1;
+      }
+    };
   }, [sessionId, retryCount, onSessionTitleChange]);
 
   async function sendMessage(event) {
@@ -187,7 +193,7 @@ function ChatConversation({
       if (!sessionTitle || sessionTitle === "New chat") {
         onSessionTitleChange(sessionId, trimmedMessage);
       }
-      onSessionUpdated(sessionId, newChat.createdAt);
+      onSessionUpdated?.(sessionId, newChat.createdAt);
     } catch (error) {
       console.error("Error sending message:", error);
       setErrors((currentErrors) => ({
@@ -213,13 +219,9 @@ function ChatConversation({
   return (
     <main className="chat-main">
       <header className="chat-main-header">
-        <button
-          className="chat-menu-button"
-          aria-label="Open chat menu"
-          onClick={onOpenSidebar}
-        >
-          ☰
-        </button>
+        <Link className="chat-history-link" to="/dashboard">
+          <span aria-hidden="true">←</span> Chat history
+        </Link>
         <h2>{sessionId ? sessionTitle ?? "Chat" : "Start a conversation"}</h2>
       </header>
 
@@ -314,28 +316,44 @@ function ChatConversation({
       </section>
 
       <form className="chat-composer" onSubmit={sendMessage}>
-        <div className="chat-location-fields">
-          <input
-            className="form-input"
-            aria-label="City (optional)"
-            placeholder="City (optional)"
-            value={city}
-            onChange={(event) =>
-              setLocation({ sessionId, city: event.target.value, country })
-            }
-            disabled={!sessionId || isSending}
-          />
-          <input
-            className="form-input"
-            aria-label="Country (optional)"
-            placeholder="Country (optional)"
-            value={country}
-            onChange={(event) =>
-              setLocation({ sessionId, city, country: event.target.value })
-            }
-            disabled={!sessionId || isSending}
-          />
-        </div>
+        <button
+          className="chat-location-toggle"
+          type="button"
+          aria-expanded={isLocationFieldsVisible}
+          aria-controls="chat-location-fields"
+          onClick={() =>
+            setIsLocationFieldsVisible((isVisible) => !isVisible)
+          }
+        >
+          <span aria-hidden="true">{isLocationFieldsVisible ? "−" : "+"}</span>
+          {isLocationFieldsVisible
+            ? "Hide optional location"
+            : "Add location (optional)"}
+        </button>
+        {isLocationFieldsVisible && (
+          <div className="chat-location-fields" id="chat-location-fields">
+            <input
+              className="form-input"
+              aria-label="City (optional)"
+              placeholder="City (optional)"
+              value={city}
+              onChange={(event) =>
+                setLocation({ sessionId, city: event.target.value, country })
+              }
+              disabled={!sessionId || isSending}
+            />
+            <input
+              className="form-input"
+              aria-label="Country (optional)"
+              placeholder="Country (optional)"
+              value={country}
+              onChange={(event) =>
+                setLocation({ sessionId, city, country: event.target.value })
+              }
+              disabled={!sessionId || isSending}
+            />
+          </div>
+        )}
         <div className="chat-message-fields">
           <textarea
             className="form-input chat-message-input"
